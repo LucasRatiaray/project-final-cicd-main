@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
   mongodb:
@@ -58,8 +58,6 @@ services:
 
   frontend:
     image: ecommerce/frontend:local
-    ports:
-      - "8080:8080"
     environment:
       NODE_ENV: production
       APP_ENV: production
@@ -71,6 +69,28 @@ services:
       - ecommerce_net
     deploy:
       replicas: 3
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.frontend.rule=Host(`app.local`)'
+        - 'traefik.http.routers.frontend.entrypoints=web'
+        - 'traefik.http.services.frontend.loadbalancer.server.port=8080'
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - '80:80'
+      - '443:443'
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+      - source: nginx_crt
+        target: /etc/nginx/certs/app.local.crt
+      - source: nginx_key
+        target: /etc/nginx/certs/app.local.key
+    networks:
+      - ecommerce_net
+    deploy:
+      replicas: 2
 
 networks:
   ecommerce_net:
@@ -78,3 +98,11 @@ networks:
 
 volumes:
   mongodb_data:
+
+configs:
+  nginx_conf:
+    file: ./nginx/nginx.conf
+  nginx_crt:
+    file: ./nginx/certs/app.local.crt
+  nginx_key:
+    file: ./nginx/certs/app.local.key
