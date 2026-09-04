@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 
+// Secret Docker monte par Swarm, prioritaire sur le .env local.
+dotenv.config({ path: '/run/secrets/app.env' });
 dotenv.config();
 
 const allowedEnvironments = ['development', 'staging', 'production', 'test'];

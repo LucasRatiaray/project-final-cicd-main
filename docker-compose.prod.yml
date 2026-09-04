@@ -20,8 +20,10 @@ services:
       NODE_ENV: production
       PORT: 3001
       MONGODB_URI: mongodb://mongodb:27017/auth
-      JWT_SECRET: change_me_avant_le_rendu
-      CORS_ORIGIN: http://app.local:8080
+      CORS_ORIGIN: https://app.local
+    secrets:
+      - source: app_env
+        target: /run/secrets/app.env
     networks:
       - ecommerce_net
     deploy:
@@ -34,8 +36,10 @@ services:
       NODE_ENV: production
       PORT: 3000
       MONGODB_URI: mongodb://mongodb:27017/products
-      JWT_SECRET: change_me_avant_le_rendu
-      CORS_ORIGIN: http://app.local:8080
+      CORS_ORIGIN: https://app.local
+    secrets:
+      - source: app_env
+        target: /run/secrets/app.env
     networks:
       - ecommerce_net
     deploy:
@@ -48,9 +52,11 @@ services:
       NODE_ENV: production
       PORT: 3002
       MONGODB_URI: mongodb://mongodb:27017/orders
-      JWT_SECRET: change_me_avant_le_rendu
-      CORS_ORIGIN: http://app.local:8080
+      CORS_ORIGIN: https://app.local
       PRODUCT_SERVICE_URL: http://product-service:3000
+    secrets:
+      - source: app_env
+        target: /run/secrets/app.env
     networks:
       - ecommerce_net
     deploy:
@@ -106,3 +112,7 @@ configs:
     file: ./nginx/certs/app.local.crt
   nginx_key:
     file: ./nginx/certs/app.local.key
+
+secrets:
+  app_env:
+    external: true
