@@ -88,8 +88,8 @@ jobs:
 
   docker:
     needs: ci
-    # Les PR utilisent github.head_ref pour identifier la branche source.
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci-cd-github-actions')) || (github.event_name == 'pull_request' && github.head_ref == 'ci-cd-github-actions')
+    # Les PR construisent et scannent les images, sans les publier.
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci-cd-github-actions'
     runs-on: ubuntu-24.04
     strategy:
       matrix:
