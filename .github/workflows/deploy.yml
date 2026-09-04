@@ -171,7 +171,7 @@ jobs:
   deploy:
     needs: docker
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'production' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, linux, swarm-manager]
+    runs-on: ubuntu-24.04
     environment: production
     steps:
       - name: checkout repository
