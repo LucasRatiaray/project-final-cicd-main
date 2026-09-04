@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:4.4.18
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ecommerce_net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == swarm-node1
+
+  auth-service:
+    image: ecommerce/auth-service:local
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      PORT: 3001
+      MONGODB_URI: mongodb://mongodb:27017/auth
+      JWT_SECRET: change_me_avant_le_rendu
+      CORS_ORIGIN: http://app.local:8080
+    networks:
+      - ecommerce_net
+    deploy:
+      replicas: 2
+
+  product-service:
+    image: ecommerce/product-service:local
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/products
+      JWT_SECRET: change_me_avant_le_rendu
+      CORS_ORIGIN: http://app.local:8080
+    networks:
+      - ecommerce_net
+    deploy:
+      replicas: 2
+
+  order-service:
+    image: ecommerce/order-service:local
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      PORT: 3002
+      MONGODB_URI: mongodb://mongodb:27017/orders
+      JWT_SECRET: change_me_avant_le_rendu
+      CORS_ORIGIN: http://app.local:8080
+      PRODUCT_SERVICE_URL: http://product-service:3000
+    networks:
+      - ecommerce_net
+    deploy:
+      replicas: 2
+
+  frontend:
+    image: ecommerce/frontend:local
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      PORT: 8080
+      AUTH_SERVICE_URL: http://auth-service:3001
+      PRODUCT_SERVICE_URL: http://product-service:3000
+      ORDER_SERVICE_URL: http://order-service:3002
+    networks:
+      - ecommerce_net
+    deploy:
+      replicas: 3
+
+networks:
+  ecommerce_net:
+    driver: overlay
+
+volumes:
+  mongodb_data:
