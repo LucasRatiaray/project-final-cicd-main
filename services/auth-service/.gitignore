@@ -1,0 +1,14 @@
+node_modules/
+.npm/
+coverage/
+test-results/
+dist/
+logs/
+*.log
+gl-code-quality-report.json
+junit.xml
+
+.env
+.env.*
+!.env.example
+!tests/.env.test

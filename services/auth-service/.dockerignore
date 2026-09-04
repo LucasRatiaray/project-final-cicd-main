@@ -1,0 +1,17 @@
+node_modules
+.npm
+coverage
+test-results
+logs
+*.log
+gl-code-quality-report.json
+junit.xml
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.vscode
+.idea
+Dockerfile*
+*.deb
