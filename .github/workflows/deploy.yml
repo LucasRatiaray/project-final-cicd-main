@@ -148,7 +148,7 @@ jobs:
 
       # Push sur dev, staging et main avec le SHA du commit.
       - name: login ghcr
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci-cd-github-actions'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -156,7 +156,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }} # fourni automatiquement
 
       - name: push image
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci-cd-github-actions'
         run: |
           docker tag local/${{ matrix.service }}:ci ghcr.io/$IMAGE/${{ matrix.service }}:${{ github.sha }}
           docker push ghcr.io/$IMAGE/${{ matrix.service }}:${{ github.sha }}
@@ -167,3 +167,40 @@ jobs:
         run: |
           docker tag local/${{ matrix.service }}:ci ghcr.io/$IMAGE/${{ matrix.service }}:latest
           docker push ghcr.io/$IMAGE/${{ matrix.service }}:latest
+
+  deploy:
+    needs: docker
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'production' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, swarm-manager]
+    environment: production
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: image to lower case
+        run: echo "IMAGE=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: login ghcr on swarm manager
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: create jwt secret
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          test -n "$JWT_SECRET"
+          if ! docker secret inspect app_env >/dev/null 2>&1; then
+            printf 'JWT_SECRET=%s\n' "$JWT_SECRET" | docker secret create app_env -
+          fi
+
+      - name: deploy production stack
+        env:
+          IMAGE_REGISTRY: ghcr.io/${{ env.IMAGE }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          test -f nginx/certs/app.local.crt
+          test -f nginx/certs/app.local.key
+          docker stack deploy \
+            --compose-file docker-compose.prod.yml \
+            --with-registry-auth \
+            e-commerce
+          docker stack services e-commerce

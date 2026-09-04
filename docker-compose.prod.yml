@@ -14,7 +14,7 @@ services:
           - node.hostname == swarm-node1
 
   auth-service:
-    image: ecommerce/auth-service:local
+    image: ${IMAGE_REGISTRY:-ecommerce}/auth-service:${IMAGE_TAG:-local}
     environment:
       APP_ENV: production
       NODE_ENV: production
@@ -30,7 +30,7 @@ services:
       replicas: 2
 
   product-service:
-    image: ecommerce/product-service:local
+    image: ${IMAGE_REGISTRY:-ecommerce}/product-service:${IMAGE_TAG:-local}
     environment:
       APP_ENV: production
       NODE_ENV: production
@@ -46,7 +46,7 @@ services:
       replicas: 2
 
   order-service:
-    image: ecommerce/order-service:local
+    image: ${IMAGE_REGISTRY:-ecommerce}/order-service:${IMAGE_TAG:-local}
     environment:
       APP_ENV: production
       NODE_ENV: production
@@ -63,7 +63,7 @@ services:
       replicas: 2
 
   frontend:
-    image: ecommerce/frontend:local
+    image: ${IMAGE_REGISTRY:-ecommerce}/frontend:${IMAGE_TAG:-local}
     environment:
       NODE_ENV: production
       APP_ENV: production
