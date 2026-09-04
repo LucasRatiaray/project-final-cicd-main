@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:4.4.18
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ecommerce_net
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      PORT: 3001
+      MONGODB_URI: mongodb://mongodb:27017/auth
+      JWT_SECRET: dev_jwt_secret_change_me
+      CORS_ORIGIN: http://localhost:8080
+    depends_on:
+      - mongodb
+    networks:
+      - ecommerce_net
+
+  product-service:
+    build: ./services/product-service
+    ports:
+      - "3000:3000"
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/products
+      JWT_SECRET: dev_jwt_secret_change_me
+      CORS_ORIGIN: http://localhost:8080
+    depends_on:
+      - mongodb
+    networks:
+      - ecommerce_net
+
+  order-service:
+    build: ./services/order-service
+    ports:
+      - "3002:3002"
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      PORT: 3002
+      MONGODB_URI: mongodb://mongodb:27017/orders
+      JWT_SECRET: dev_jwt_secret_change_me
+      CORS_ORIGIN: http://localhost:8080
+      PRODUCT_SERVICE_URL: http://product-service:3000
+    depends_on:
+      - mongodb
+    networks:
+      - ecommerce_net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      PORT: 8080
+      AUTH_SERVICE_URL: http://auth-service:3001
+      PRODUCT_SERVICE_URL: http://product-service:3000
+      ORDER_SERVICE_URL: http://order-service:3002
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+    networks:
+      - ecommerce_net
+
+networks:
+  ecommerce_net:
+    driver: bridge
+
+volumes:
+  mongodb_data:
