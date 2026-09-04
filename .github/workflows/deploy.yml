@@ -89,7 +89,7 @@ jobs:
   docker:
     needs: ci
     # Build et push uniquement pour dev, staging et main.
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.red == 'refs/head/ci-cd-github-actions'
     runs-on: ubuntu-24.04
     strategy:
       matrix:
